@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "feedItemId": {
+      "type": "integer"
+    },
+    "author": {
+      "type": "string"
+    },
+    "contents": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "feedItemId",
+    "author",
+    "contents"
+  ]
+}

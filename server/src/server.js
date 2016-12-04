@@ -89,6 +89,7 @@ app.get('/user/:userid/feed', function(req, res) {
 });
 
 var StatusUpdateSchema = require('./schemas/statusupdate.json');
+var CommentSchema = require('./schemas/comment.json');
 var validate = require('express-jsonschema').validate;
 var writeDocument = database.writeDocument;
 var addDocument = database.addDocument;
@@ -128,6 +129,7 @@ function postStatusUpdate(user, location, contents) {
   // Return the newly-posted object.
   return newStatusUpdate;
 }
+
 // `POST /feeditem { userId: user, location: location, contents: contents }`
 app.post('/feeditem',
 validate({ body: StatusUpdateSchema }), function(req, res) {
@@ -150,6 +152,35 @@ validate({ body: StatusUpdateSchema }), function(req, res) {
       res.status(401).end();
     }
   });
+
+  /**
+  * Adds a new comment to the database.
+  */
+  function postComment(feedItemId, author, contents) {
+    var feedItem = readDocument('feedItems', feedItemId);
+    feedItem.comments.push({
+      "author": author,
+      "contents": contents,
+      "postDate": new Date().getTime(),
+      "likeCounter": []
+    });
+    writeDocument('feedItems', feedItem);
+    // Return a resolved version of the feed item.
+    return feedItem;
+  }
+
+  app.post('/comment',
+  validate({ body: CommentSchema }), function(req, res) {
+    var body = req.body;
+    var fromUser = getUserIdFromToken(req.get('Authorization'));
+    if (fromUser === body.userId) {
+      //Can't seem to get validation to work
+      } else {
+        // 401: Unauthorized.
+        res.status(401).end();
+      }
+    }
+  );
 
   // Reset database.
   app.post('/resetdb', function(req, res) {
@@ -236,6 +267,15 @@ validate({ body: StatusUpdateSchema }), function(req, res) {
       // 401: Unauthorized.
       res.status(401).end();
     }
+  });
+
+  // Like a comment.
+  app.put('/comment/:feeditemid/:commentIdx/likelist/:userid', function(req, res) {
+    var fromUser = getUserIdFromToken(req.get('Authorization'));
+  });
+
+  // Unlike a feed item.
+  app.delete('/comment/:feeditemid/:commentIdx/likelist/:userid', function(req, res) {
   });
 
   // Unlike a feed item.
